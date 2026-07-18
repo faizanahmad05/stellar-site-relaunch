@@ -256,7 +256,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
   // ---------- Data ----------
   const CATEGORIES = ['Shirts','Trousers','Combo Packs'];
   const SIZES = ['S','M','L','XL','XXL'];
-  const IMG = (n:string) => 'src/images/' + n;
+  const IMG = (n:string) => '/images/' + n;
 
   const rawProducts: Array<Omit<Product,'compareAt'>> = [
     { id:'p1', name:'Down Shoulder Premium Polo — Gray & Black', category:'Shirts', price:2800,

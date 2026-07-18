@@ -12,6 +12,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+const META_PIXEL_ID = "1999778283983910";
+const META_PIXEL_SCRIPT = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${META_PIXEL_ID}');fbq('track','PageView');fbq('track','InitiateCheckout');`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -77,22 +80,40 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Majestic Stoff — Premium Menswear · Free Shipping · 40% Off" },
+      {
+        name: "description",
+        content:
+          "Premium menswear for a generation that dresses with intent. Shirts, trousers and combo packs at 40% off with free shipping across Pakistan. Cash on delivery.",
+      },
+      { name: "author", content: "Majestic Stoff" },
+      { property: "og:title", content: "Majestic Stoff — Premium Menswear" },
+      {
+        property: "og:description",
+        content:
+          "Elevated staples — considered fabrics, modern silhouettes. 40% OFF sitewide with free shipping across Pakistan.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Majestic Stoff" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Majestic Stoff — Premium Menswear" },
+      {
+        name: "twitter:description",
+        content:
+          "Premium shirts, trousers & combos. 40% off, free shipping, cash on delivery.",
+      },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "src/images/logo.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
+    scripts: [{ children: META_PIXEL_SCRIPT }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -107,6 +128,15 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
         {children}
         <Scripts />
       </body>
@@ -119,7 +149,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );

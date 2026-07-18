@@ -571,7 +571,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     const testis = allReviews.slice(0,6);
 
     return '<section class="hero">' +
-      '<div class="hero-bg"><img src="'+IMG('combo-signature-1.png')+'" alt=""></div>' +
+      '<div class="hero-bg"><img src="'+IMG('hero.png')+'" alt=""></div>' +
       '<div class="wrap hero-content">' +
         '<span class="hero-sale">40% OFF · Free Shipping</span>' +
         '<span class="eyebrow">Spring / Summer 2026</span>' +

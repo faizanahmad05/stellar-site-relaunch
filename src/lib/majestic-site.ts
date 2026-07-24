@@ -3,6 +3,8 @@
 // client-side effect. Do not import at module scope from anything SSR uses.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { placeOrder } from "./orders.functions";
+
 declare global {
   interface Window {
     fbq?: (...args: any[]) => void;

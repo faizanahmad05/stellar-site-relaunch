@@ -391,12 +391,17 @@ export function initMajesticSite(root: HTMLElement): () => void {
   const WHATSAPP_NUMBER = '03124051475';
   const CART_STORAGE_KEY = 'majesticStoffCart';
 
+  interface CheckoutForm {
+    name:string; phone:string; address:string; city:string; note:string;
+    paymentMethod:'cod'|'sadapay'; transactionId:string;
+  }
   interface State {
     view:string; productId:string|null; activeImage:number; pdSize:string|null;
     pdQty:number; openAccordion:string|null; cart:CartItem[];
     filters:{category:string; size:string; price:string};
     sort:string; mobileFiltersOpen:boolean; mobileNavOpen:boolean;
     reviewForm:{name:string; rating:number; comment:string};
+    checkoutForm:CheckoutForm; placingOrder:boolean; lastOrderNumber:number|null;
   }
 
   function loadCart():CartItem[] {
@@ -417,6 +422,8 @@ export function initMajesticSite(root: HTMLElement): () => void {
     filters:{ category:'all', size:'all', price:'all' },
     sort:'newest', mobileFiltersOpen:false, mobileNavOpen:false,
     reviewForm:{ name:'', rating:5, comment:'' },
+    checkoutForm:{ name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' },
+    placingOrder:false, lastOrderNumber:null,
   };
 
   // ---------- Helpers ----------

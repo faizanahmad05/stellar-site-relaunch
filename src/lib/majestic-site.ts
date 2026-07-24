@@ -240,6 +240,15 @@ export const MAJESTIC_CSS = `
 .majestic-root .trust-chip{ display:flex; align-items:center; gap:7px; border:1px solid var(--line); padding:8px 12px; font-size:.76rem; background:var(--card); }
 .majestic-root .order-summary-box{ background:var(--ivory); padding:24px; }
 .majestic-root .mini-line{ display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:10px; color:var(--ink-soft); }
+.majestic-root .pay-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.majestic-root .pay-option{ display:flex; align-items:center; gap:10px; padding:14px 16px; border:1px solid var(--line); background:var(--card); cursor:pointer; font-size:.92rem; }
+.majestic-root .pay-option.selected{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+.majestic-root .pay-option input{ accent-color:var(--gold-deep); }
+.majestic-root .pay-details{ background:var(--ivory); border-left:3px solid var(--gold); padding:18px 18px 6px; margin-bottom:10px; }
+.majestic-root .pay-row{ display:flex; justify-content:space-between; font-size:.88rem; margin-bottom:10px; gap:10px; }
+.majestic-root .pay-label{ color:var(--ink-soft); }
+.majestic-root .pay-qr{ display:block; width:180px; height:auto; margin:14px 0; border-radius:10px; border:1px solid var(--line); background:#fff; padding:8px; }
+.majestic-root .pay-note{ font-size:.82rem; color:var(--sale); margin:0 0 14px; font-weight:600; }
 
 /* Confirmation */
 .majestic-root .confirm-box{ text-align:center; padding:100px 20px; max-width:560px; margin:0 auto; }

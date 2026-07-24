@@ -3,6 +3,8 @@
 // client-side effect. Do not import at module scope from anything SSR uses.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { placeOrder } from "./orders.functions";
+
 declare global {
   interface Window {
     fbq?: (...args: any[]) => void;
@@ -238,6 +240,15 @@ export const MAJESTIC_CSS = `
 .majestic-root .trust-chip{ display:flex; align-items:center; gap:7px; border:1px solid var(--line); padding:8px 12px; font-size:.76rem; background:var(--card); }
 .majestic-root .order-summary-box{ background:var(--ivory); padding:24px; }
 .majestic-root .mini-line{ display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:10px; color:var(--ink-soft); }
+.majestic-root .pay-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.majestic-root .pay-option{ display:flex; align-items:center; gap:10px; padding:14px 16px; border:1px solid var(--line); background:var(--card); cursor:pointer; font-size:.92rem; }
+.majestic-root .pay-option.selected{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+.majestic-root .pay-option input{ accent-color:var(--gold-deep); }
+.majestic-root .pay-details{ background:var(--ivory); border-left:3px solid var(--gold); padding:18px 18px 6px; margin-bottom:10px; }
+.majestic-root .pay-row{ display:flex; justify-content:space-between; font-size:.88rem; margin-bottom:10px; gap:10px; }
+.majestic-root .pay-label{ color:var(--ink-soft); }
+.majestic-root .pay-qr{ display:block; width:180px; height:auto; margin:14px 0; border-radius:10px; border:1px solid var(--line); background:#fff; padding:8px; }
+.majestic-root .pay-note{ font-size:.82rem; color:var(--sale); margin:0 0 14px; font-weight:600; }
 
 /* Confirmation */
 .majestic-root .confirm-box{ text-align:center; padding:100px 20px; max-width:560px; margin:0 auto; }
@@ -389,12 +400,17 @@ export function initMajesticSite(root: HTMLElement): () => void {
   const WHATSAPP_NUMBER = '03124051475';
   const CART_STORAGE_KEY = 'majesticStoffCart';
 
+  interface CheckoutForm {
+    name:string; phone:string; address:string; city:string; note:string;
+    paymentMethod:'cod'|'sadapay'; transactionId:string;
+  }
   interface State {
     view:string; productId:string|null; activeImage:number; pdSize:string|null;
     pdQty:number; openAccordion:string|null; cart:CartItem[];
     filters:{category:string; size:string; price:string};
     sort:string; mobileFiltersOpen:boolean; mobileNavOpen:boolean;
     reviewForm:{name:string; rating:number; comment:string};
+    checkoutForm:CheckoutForm; placingOrder:boolean; lastOrderNumber:number|null;
   }
 
   function loadCart():CartItem[] {
@@ -415,6 +431,8 @@ export function initMajesticSite(root: HTMLElement): () => void {
     filters:{ category:'all', size:'all', price:'all' },
     sort:'newest', mobileFiltersOpen:false, mobileNavOpen:false,
     reviewForm:{ name:'', rating:5, comment:'' },
+    checkoutForm:{ name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' },
+    placingOrder:false, lastOrderNumber:null,
   };
 
   // ---------- Helpers ----------
@@ -793,23 +811,52 @@ export function initMajesticSite(root: HTMLElement): () => void {
     if(!lines.length){
       return '<div class="wrap empty-state"><h1 class="font-display">Nothing to check out</h1><p style="color:var(--ink-soft);margin:14px 0 26px;">Your cart is empty.</p><button class="btn btn-gold" data-action="go" data-view="shop">Back to Shop</button></div>';
     }
-    const waMsg = 'Hi Majestic Stoff, I would like to place an order:%0A%0A' +
-      lines.map(l => '- '+l.product.name+' (Size '+l.item.size+') x'+l.item.qty+' — '+fmt(l.lineTotal)).join('%0A') +
-      '%0A%0ATotal: '+fmt(cartSubtotal())+' (Free shipping · Cash on Delivery)';
-    const waHref = 'https://wa.me/'+WHATSAPP_NUMBER+'?text='+waMsg;
     const saved = cartCompareTotal() - cartSubtotal();
+    const cf = state.checkoutForm;
+    const isSada = cf.paymentMethod === 'sadapay';
+    const payRadio = (val:'cod'|'sadapay', label:string) =>
+      '<label class="pay-option'+(cf.paymentMethod===val?' selected':'')+'">' +
+        '<input type="radio" name="paymentMethod" value="'+val+'" data-role="pay-method"'+(cf.paymentMethod===val?' checked':'')+'>' +
+        '<span>'+label+'</span>' +
+      '</label>';
+
     return '<div class="wrap page-head"><h1>Checkout</h1></div>' +
     '<div class="wrap checkout-layout" style="padding:26px 0 90px;">' +
       '<div>' +
-        '<p style="color:var(--ink-soft);margin-bottom:20px;">We take orders directly on WhatsApp. Tap the button below to send us your order — our team will confirm sizes and delivery details right there.</p>' +
-        '<div class="cod-note"><strong>Free Shipping · Cash on Delivery.</strong> Delivery is free across Pakistan and you pay in cash when your order arrives — no card or online payment needed.</div>' +
+        '<div class="cod-note"><strong>Free Shipping across Pakistan.</strong> Fill in your delivery details below and choose how you\u2019d like to pay.</div>' +
         '<div class="trust-row">' +
           '<div class="trust-chip">'+ICONS.truck+' Free Shipping</div>' +
           '<div class="trust-chip">'+ICONS.shield+' Cash on Delivery</div>' +
           '<div class="trust-chip">'+ICONS.swap+' Easy Exchange</div>' +
           '<div class="trust-chip">'+ICONS.shield+' Quality Checked</div>' +
         '</div>' +
-        '<a class="btn btn-gold btn-full" style="margin-top:20px;" href="'+waHref+'" target="_blank" rel="noopener" data-action="order-whatsapp">Order via WhatsApp</a>' +
+        '<form id="checkoutForm" novalidate>' +
+          '<h3 class="font-display" style="font-size:1.15rem;margin:8px 0 14px;">Customer Information</h3>' +
+          '<div class="field"><label>Full Name *</label><input type="text" data-role="co-name" value="'+escapeHtml(cf.name)+'" required></div>' +
+          '<div class="field"><label>Phone Number *</label><input type="tel" data-role="co-phone" value="'+escapeHtml(cf.phone)+'" required></div>' +
+          '<div class="field"><label>Address *</label><input type="text" data-role="co-address" value="'+escapeHtml(cf.address)+'" required></div>' +
+          '<div class="field"><label>City *</label><input type="text" data-role="co-city" value="'+escapeHtml(cf.city)+'" required></div>' +
+          '<div class="field"><label>Delivery Note / Instructions</label><textarea rows="2" data-role="co-note">'+escapeHtml(cf.note)+'</textarea></div>' +
+
+          '<h3 class="font-display" style="font-size:1.15rem;margin:22px 0 14px;">Payment Method</h3>' +
+          '<div class="pay-list">' +
+            payRadio('cod','Cash on Delivery') +
+            payRadio('sadapay','Online Payment (Sadapay)') +
+          '</div>' +
+          (isSada ?
+            '<div class="pay-details">' +
+              '<div class="pay-row"><span class="pay-label">Account Name</span><strong>Faizan Ahmad Yousaf</strong></div>' +
+              '<div class="pay-row"><span class="pay-label">Sadapay Number</span><strong>03124051475</strong></div>' +
+              '<img class="pay-qr" src="/images/sadapay-qr.png" alt="Sadapay QR Code" loading="lazy">' +
+              '<p class="pay-note">Please complete your payment before placing the order.</p>' +
+              '<div class="field"><label>Payment Reference / Transaction ID *</label><input type="text" data-role="co-txn" value="'+escapeHtml(cf.transactionId)+'" required></div>' +
+            '</div>'
+          : '') +
+
+          '<button class="btn btn-gold btn-full" type="submit" style="margin-top:20px;"'+(state.placingOrder?' disabled':'')+'>' +
+            (state.placingOrder ? 'Placing order…' : 'Place Order') +
+          '</button>' +
+        '</form>' +
       '</div>' +
       '<div>' +
         '<div class="order-summary-box">' +
@@ -828,6 +875,17 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '</div>';
   }
 
+  function viewConfirmation(){
+    const n = state.lastOrderNumber;
+    return '<div class="wrap confirm-box">' +
+      '<div class="confirm-check"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2.4"><polyline points="4 12 10 18 20 6"/></svg></div>' +
+      '<h1 class="font-display" style="font-size:2rem;">Thank you!</h1>' +
+      '<p style="color:var(--ink-soft);margin:14px 0 4px;">Your order has been placed successfully.</p>' +
+      (n!==null ? '<p style="margin-bottom:26px;">Order Number: <strong>#'+n+'</strong></p>' : '<div style="height:20px;"></div>') +
+      '<button class="btn btn-gold" data-action="go" data-view="shop">Continue Shopping</button>' +
+    '</div>';
+  }
+
   // ---------- Main render ----------
   function render(){
     saveCart();
@@ -837,6 +895,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     else if(state.view==='product') body = viewProduct();
     else if(state.view==='cart') body = viewCart();
     else if(state.view==='checkout') body = viewCheckout();
+    else if(state.view==='confirmation') body = viewConfirmation();
 
     const appEl = root.querySelector('#maj-app') as HTMLElement | null;
     if(appEl){
@@ -923,19 +982,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
       render();
       toast('Removed from cart');
     }
-    else if(action==='order-whatsapp'){
-      const total = cartSubtotal();
-      const items = cartCount();
-      try {
-        window.fbq && window.fbq('track','InitiateCheckout', {
-          value: total, currency:'PKR', num_items: items,
-          content_ids: state.cart.map(i => i.id),
-        });
-      } catch {}
-      state.cart = [];
-      render();
-      toast('Opening WhatsApp to confirm your order...');
-    }
   };
 
   const onInput = (e:Event) => {
@@ -944,10 +990,21 @@ export function initMajesticSite(root: HTMLElement): () => void {
     if(!role) return;
     if(role==='review-name') state.reviewForm.name = t.value;
     else if(role==='review-comment') state.reviewForm.comment = t.value;
+    else if(role==='co-name') state.checkoutForm.name = t.value;
+    else if(role==='co-phone') state.checkoutForm.phone = t.value;
+    else if(role==='co-address') state.checkoutForm.address = t.value;
+    else if(role==='co-city') state.checkoutForm.city = t.value;
+    else if(role==='co-note') state.checkoutForm.note = t.value;
+    else if(role==='co-txn') state.checkoutForm.transactionId = t.value;
   };
   const onChange = (e:Event) => {
-    const t = e.target as HTMLSelectElement;
-    if(t.getAttribute && t.getAttribute('data-role')==='sort-select'){ state.sort = t.value; render(); }
+    const t = e.target as HTMLInputElement & HTMLSelectElement;
+    const role = t.getAttribute && t.getAttribute('data-role');
+    if(role==='sort-select'){ state.sort = t.value; render(); }
+    else if(role==='pay-method'){
+      state.checkoutForm.paymentMethod = (t.value === 'sadapay' ? 'sadapay' : 'cod');
+      render();
+    }
   };
   const onSubmit = (e:Event) => {
     const t = e.target as HTMLFormElement;
@@ -956,7 +1013,79 @@ export function initMajesticSite(root: HTMLElement): () => void {
       const input = t.querySelector('input') as HTMLInputElement | null;
       if(input && input.value.trim()){ toast('Thanks — you\'re on the list'); t.reset(); }
     }
+    else if(t.id==='checkoutForm'){
+      e.preventDefault();
+      submitCheckout();
+    }
   };
+
+  async function submitCheckout(){
+    if(state.placingOrder) return;
+    const cf = state.checkoutForm;
+    if(!cf.name.trim()){ toast('Please enter your full name'); return; }
+    if(!cf.phone.trim()){ toast('Please enter your phone number'); return; }
+    if(!cf.address.trim()){ toast('Please enter your address'); return; }
+    if(!cf.city.trim()){ toast('Please enter your city'); return; }
+    if(cf.paymentMethod==='sadapay' && !cf.transactionId.trim()){
+      toast('Please enter your payment reference.'); return;
+    }
+    const lines = cartLines();
+    if(!lines.length){ toast('Your cart is empty'); return; }
+
+    const subtotal = cartSubtotal();
+    const savings = cartCompareTotal() - subtotal;
+    const items = lines.map(l => {
+      const parts = l.product.name.split(' — ');
+      return {
+        name: parts[0],
+        color: parts[1],
+        size: l.item.size,
+        qty: l.item.qty,
+        price: l.product.price * l.item.qty,
+      };
+    });
+
+    try {
+      window.fbq && window.fbq('track','InitiateCheckout', {
+        value: subtotal, currency:'PKR', num_items: cartCount(),
+        content_ids: state.cart.map(i => i.id),
+      });
+    } catch {}
+
+    state.placingOrder = true;
+    render();
+    try {
+      const res = await placeOrder({ data: {
+        name: cf.name.trim(),
+        phone: cf.phone.trim(),
+        address: cf.address.trim(),
+        city: cf.city.trim(),
+        note: cf.note.trim(),
+        paymentMethod: cf.paymentMethod,
+        transactionId: cf.paymentMethod==='sadapay' ? cf.transactionId.trim() : undefined,
+        items,
+        subtotal,
+        savings,
+        total: subtotal,
+      }});
+      try {
+        window.fbq && window.fbq('track','Purchase', {
+          value: subtotal, currency:'PKR', num_items: cartCount(),
+          content_ids: state.cart.map(i => i.id),
+        });
+      } catch {}
+      state.cart = [];
+      state.checkoutForm = { name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' };
+      state.lastOrderNumber = res.orderNumber;
+      state.placingOrder = false;
+      navigate('confirmation');
+    } catch (err) {
+      console.error(err);
+      state.placingOrder = false;
+      render();
+      toast('Unable to place your order. Please try again.');
+    }
+  }
 
   document.addEventListener('click', onClick);
   document.addEventListener('input', onInput);

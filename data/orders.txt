@@ -1,0 +1,56 @@
+================================================
+ORDER #1
+================================================
+
+Date:
+2026-07-24 15:54:21
+
+Customer
+
+Name:
+John Doe
+
+Phone:
+03001234567
+
+Address:
+123 Main Street
+
+City:
+Lahore
+
+Delivery Note:
+-
+
+Payment Method:
+Sadapay
+
+Transaction ID:
+TXN12345
+
+--------------------------------
+
+Items
+
+- Down Shoulder Premium Polo
+  Color: Gray & Black
+  Size: S
+  Qty: 1
+  Price: Rs. 2,800
+
+--------------------------------
+
+Subtotal:
+Rs. 2,800
+
+Shipping:
+Free
+
+Savings:
+Rs. 1,100
+
+Total:
+Rs. 2,800
+
+================================================
+

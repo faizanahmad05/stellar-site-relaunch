@@ -984,10 +984,21 @@ export function initMajesticSite(root: HTMLElement): () => void {
     if(!role) return;
     if(role==='review-name') state.reviewForm.name = t.value;
     else if(role==='review-comment') state.reviewForm.comment = t.value;
+    else if(role==='co-name') state.checkoutForm.name = t.value;
+    else if(role==='co-phone') state.checkoutForm.phone = t.value;
+    else if(role==='co-address') state.checkoutForm.address = t.value;
+    else if(role==='co-city') state.checkoutForm.city = t.value;
+    else if(role==='co-note') state.checkoutForm.note = t.value;
+    else if(role==='co-txn') state.checkoutForm.transactionId = t.value;
   };
   const onChange = (e:Event) => {
-    const t = e.target as HTMLSelectElement;
-    if(t.getAttribute && t.getAttribute('data-role')==='sort-select'){ state.sort = t.value; render(); }
+    const t = e.target as HTMLInputElement & HTMLSelectElement;
+    const role = t.getAttribute && t.getAttribute('data-role');
+    if(role==='sort-select'){ state.sort = t.value; render(); }
+    else if(role==='pay-method'){
+      state.checkoutForm.paymentMethod = (t.value === 'sadapay' ? 'sadapay' : 'cod');
+      render();
+    }
   };
   const onSubmit = (e:Event) => {
     const t = e.target as HTMLFormElement;
@@ -996,7 +1007,79 @@ export function initMajesticSite(root: HTMLElement): () => void {
       const input = t.querySelector('input') as HTMLInputElement | null;
       if(input && input.value.trim()){ toast('Thanks — you\'re on the list'); t.reset(); }
     }
+    else if(t.id==='checkoutForm'){
+      e.preventDefault();
+      submitCheckout();
+    }
   };
+
+  async function submitCheckout(){
+    if(state.placingOrder) return;
+    const cf = state.checkoutForm;
+    if(!cf.name.trim()){ toast('Please enter your full name'); return; }
+    if(!cf.phone.trim()){ toast('Please enter your phone number'); return; }
+    if(!cf.address.trim()){ toast('Please enter your address'); return; }
+    if(!cf.city.trim()){ toast('Please enter your city'); return; }
+    if(cf.paymentMethod==='sadapay' && !cf.transactionId.trim()){
+      toast('Please enter your payment reference.'); return;
+    }
+    const lines = cartLines();
+    if(!lines.length){ toast('Your cart is empty'); return; }
+
+    const subtotal = cartSubtotal();
+    const savings = cartCompareTotal() - subtotal;
+    const items = lines.map(l => {
+      const parts = l.product.name.split(' — ');
+      return {
+        name: parts[0],
+        color: parts[1],
+        size: l.item.size,
+        qty: l.item.qty,
+        price: l.product.price * l.item.qty,
+      };
+    });
+
+    try {
+      window.fbq && window.fbq('track','InitiateCheckout', {
+        value: subtotal, currency:'PKR', num_items: cartCount(),
+        content_ids: state.cart.map(i => i.id),
+      });
+    } catch {}
+
+    state.placingOrder = true;
+    render();
+    try {
+      const res = await placeOrder({ data: {
+        name: cf.name.trim(),
+        phone: cf.phone.trim(),
+        address: cf.address.trim(),
+        city: cf.city.trim(),
+        note: cf.note.trim(),
+        paymentMethod: cf.paymentMethod,
+        transactionId: cf.paymentMethod==='sadapay' ? cf.transactionId.trim() : undefined,
+        items,
+        subtotal,
+        savings,
+        total: subtotal,
+      }});
+      try {
+        window.fbq && window.fbq('track','Purchase', {
+          value: subtotal, currency:'PKR', num_items: cartCount(),
+          content_ids: state.cart.map(i => i.id),
+        });
+      } catch {}
+      state.cart = [];
+      state.checkoutForm = { name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' };
+      state.lastOrderNumber = res.orderNumber;
+      state.placingOrder = false;
+      navigate('confirmation');
+    } catch (err) {
+      console.error(err);
+      state.placingOrder = false;
+      render();
+      toast('Unable to place your order. Please try again.');
+    }
+  }
 
   document.addEventListener('click', onClick);
   document.addEventListener('input', onInput);

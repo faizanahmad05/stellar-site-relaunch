@@ -802,23 +802,52 @@ export function initMajesticSite(root: HTMLElement): () => void {
     if(!lines.length){
       return '<div class="wrap empty-state"><h1 class="font-display">Nothing to check out</h1><p style="color:var(--ink-soft);margin:14px 0 26px;">Your cart is empty.</p><button class="btn btn-gold" data-action="go" data-view="shop">Back to Shop</button></div>';
     }
-    const waMsg = 'Hi Majestic Stoff, I would like to place an order:%0A%0A' +
-      lines.map(l => '- '+l.product.name+' (Size '+l.item.size+') x'+l.item.qty+' — '+fmt(l.lineTotal)).join('%0A') +
-      '%0A%0ATotal: '+fmt(cartSubtotal())+' (Free shipping · Cash on Delivery)';
-    const waHref = 'https://wa.me/'+WHATSAPP_NUMBER+'?text='+waMsg;
     const saved = cartCompareTotal() - cartSubtotal();
+    const cf = state.checkoutForm;
+    const isSada = cf.paymentMethod === 'sadapay';
+    const payRadio = (val:'cod'|'sadapay', label:string) =>
+      '<label class="pay-option'+(cf.paymentMethod===val?' selected':'')+'">' +
+        '<input type="radio" name="paymentMethod" value="'+val+'" data-role="pay-method"'+(cf.paymentMethod===val?' checked':'')+'>' +
+        '<span>'+label+'</span>' +
+      '</label>';
+
     return '<div class="wrap page-head"><h1>Checkout</h1></div>' +
     '<div class="wrap checkout-layout" style="padding:26px 0 90px;">' +
       '<div>' +
-        '<p style="color:var(--ink-soft);margin-bottom:20px;">We take orders directly on WhatsApp. Tap the button below to send us your order — our team will confirm sizes and delivery details right there.</p>' +
-        '<div class="cod-note"><strong>Free Shipping · Cash on Delivery.</strong> Delivery is free across Pakistan and you pay in cash when your order arrives — no card or online payment needed.</div>' +
+        '<div class="cod-note"><strong>Free Shipping across Pakistan.</strong> Fill in your delivery details below and choose how you\u2019d like to pay.</div>' +
         '<div class="trust-row">' +
           '<div class="trust-chip">'+ICONS.truck+' Free Shipping</div>' +
           '<div class="trust-chip">'+ICONS.shield+' Cash on Delivery</div>' +
           '<div class="trust-chip">'+ICONS.swap+' Easy Exchange</div>' +
           '<div class="trust-chip">'+ICONS.shield+' Quality Checked</div>' +
         '</div>' +
-        '<a class="btn btn-gold btn-full" style="margin-top:20px;" href="'+waHref+'" target="_blank" rel="noopener" data-action="order-whatsapp">Order via WhatsApp</a>' +
+        '<form id="checkoutForm" novalidate>' +
+          '<h3 class="font-display" style="font-size:1.15rem;margin:8px 0 14px;">Customer Information</h3>' +
+          '<div class="field"><label>Full Name *</label><input type="text" data-role="co-name" value="'+escapeHtml(cf.name)+'" required></div>' +
+          '<div class="field"><label>Phone Number *</label><input type="tel" data-role="co-phone" value="'+escapeHtml(cf.phone)+'" required></div>' +
+          '<div class="field"><label>Address *</label><input type="text" data-role="co-address" value="'+escapeHtml(cf.address)+'" required></div>' +
+          '<div class="field"><label>City *</label><input type="text" data-role="co-city" value="'+escapeHtml(cf.city)+'" required></div>' +
+          '<div class="field"><label>Delivery Note / Instructions</label><textarea rows="2" data-role="co-note">'+escapeHtml(cf.note)+'</textarea></div>' +
+
+          '<h3 class="font-display" style="font-size:1.15rem;margin:22px 0 14px;">Payment Method</h3>' +
+          '<div class="pay-list">' +
+            payRadio('cod','Cash on Delivery') +
+            payRadio('sadapay','Online Payment (Sadapay)') +
+          '</div>' +
+          (isSada ?
+            '<div class="pay-details">' +
+              '<div class="pay-row"><span class="pay-label">Account Name</span><strong>Faizan Ahmad Yousaf</strong></div>' +
+              '<div class="pay-row"><span class="pay-label">Sadapay Number</span><strong>03124051475</strong></div>' +
+              '<img class="pay-qr" src="/images/sadapay-qr.png" alt="Sadapay QR Code" loading="lazy">' +
+              '<p class="pay-note">Please complete your payment before placing the order.</p>' +
+              '<div class="field"><label>Payment Reference / Transaction ID *</label><input type="text" data-role="co-txn" value="'+escapeHtml(cf.transactionId)+'" required></div>' +
+            '</div>'
+          : '') +
+
+          '<button class="btn btn-gold btn-full" type="submit" style="margin-top:20px;"'+(state.placingOrder?' disabled':'')+'>' +
+            (state.placingOrder ? 'Placing order…' : 'Place Order') +
+          '</button>' +
+        '</form>' +
       '</div>' +
       '<div>' +
         '<div class="order-summary-box">' +
@@ -837,6 +866,17 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '</div>';
   }
 
+  function viewConfirmation(){
+    const n = state.lastOrderNumber;
+    return '<div class="wrap confirm-box">' +
+      '<div class="confirm-check"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2.4"><polyline points="4 12 10 18 20 6"/></svg></div>' +
+      '<h1 class="font-display" style="font-size:2rem;">Thank you!</h1>' +
+      '<p style="color:var(--ink-soft);margin:14px 0 4px;">Your order has been placed successfully.</p>' +
+      (n!==null ? '<p style="margin-bottom:26px;">Order Number: <strong>#'+n+'</strong></p>' : '<div style="height:20px;"></div>') +
+      '<button class="btn btn-gold" data-action="go" data-view="shop">Continue Shopping</button>' +
+    '</div>';
+  }
+
   // ---------- Main render ----------
   function render(){
     saveCart();
@@ -846,6 +886,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     else if(state.view==='product') body = viewProduct();
     else if(state.view==='cart') body = viewCart();
     else if(state.view==='checkout') body = viewCheckout();
+    else if(state.view==='confirmation') body = viewConfirmation();
 
     const appEl = root.querySelector('#maj-app') as HTMLElement | null;
     if(appEl){

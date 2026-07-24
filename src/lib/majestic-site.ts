@@ -973,18 +973,8 @@ export function initMajesticSite(root: HTMLElement): () => void {
       render();
       toast('Removed from cart');
     }
-    else if(action==='order-whatsapp'){
-      const total = cartSubtotal();
-      const items = cartCount();
-      try {
-        window.fbq && window.fbq('track','InitiateCheckout', {
-          value: total, currency:'PKR', num_items: items,
-          content_ids: state.cart.map(i => i.id),
-        });
-      } catch {}
-      state.cart = [];
-      render();
-      toast('Opening WhatsApp to confirm your order...');
+    else if(action==='place-order'){
+      // handled by submit handler
     }
   };
 

@@ -973,9 +973,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
       render();
       toast('Removed from cart');
     }
-    else if(action==='place-order'){
-      // handled by submit handler
-    }
   };
 
   const onInput = (e:Event) => {

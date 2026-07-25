@@ -1,13 +1,12 @@
-// Server-only helpers for persisting orders to a text file inside the GitHub
-// repo via the GitHub Contents API. Never import from client code — the
-// *.server.ts suffix keeps this out of the browser bundle.
+// Server-only order handler. Sends each order as an email via Resend.
+// Never import from client code — the *.server.ts suffix keeps this out of
+// the browser bundle.
 //
 // Required env vars (set as server-only secrets):
-//   GITHUB_TOKEN        — PAT with `repo` (contents:write) scope
-//   GITHUB_REPO_OWNER   — repo owner / org (e.g. "faizan-ahmad")
-//   GITHUB_REPO_NAME    — repo name (e.g. "majestic-stoff")
-//   GITHUB_ORDERS_PATH  — optional, defaults to "data/orders.txt"
-//   GITHUB_BRANCH       — optional, defaults to repo default branch
+//   RESEND_API_KEY       — Resend API key
+//   ORDER_RECIPIENT_EMAIL — inbox to receive orders (e.g. fa7055726@gmail.com)
+
+import { Resend } from "resend";
 
 export interface OrderItemInput {
   name: string;
@@ -52,213 +51,108 @@ function fmtDate(d: Date) {
   );
 }
 
-function formatOrder(orderNumber: number, order: OrderInput): string {
-  const sep = "================================================";
-  const inner = "--------------------------------";
+function generateOrderId(d: Date): string {
+  const pad = (x: number) => String(x).padStart(2, "0");
+  const date =
+    d.getFullYear().toString() + pad(d.getMonth() + 1) + pad(d.getDate());
+  const time = pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${date}-${time}-${rand}`;
+}
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildHtml(orderId: string, dateStr: string, order: OrderInput): string {
+  const itemsRows = order.items
+    .map(
+      (it) => `
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #eee;">
+            <strong>${esc(it.name)}</strong>${it.color ? `<br/><span style="color:#666;font-size:13px;">Color: ${esc(it.color)}</span>` : ""}
+          </td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${esc(it.size)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${it.qty}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${fmtRs(it.price)}</td>
+        </tr>`,
+    )
+    .join("");
+
   const paymentBlock =
     order.paymentMethod === "sadapay"
-      ? "Payment Method:\nSadapay\n\nTransaction ID:\n" + (order.transactionId || "-")
-      : "Payment Method:\nCash on Delivery";
+      ? `<p style="margin:4px 0;"><strong>Payment Method:</strong> Sadapay</p>
+         <p style="margin:4px 0;"><strong>Transaction ID:</strong> ${esc(order.transactionId || "-")}</p>`
+      : `<p style="margin:4px 0;"><strong>Payment Method:</strong> Cash on Delivery</p>`;
 
-  const itemsBlock = order.items
-    .map((it) => {
-      const lines = ["- " + it.name];
-      if (it.color) lines.push("  Color: " + it.color);
-      lines.push("  Size: " + it.size);
-      lines.push("  Qty: " + it.qty);
-      lines.push("  Price: " + fmtRs(it.price));
-      return lines.join("\n");
-    })
-    .join("\n\n");
+  return `<!DOCTYPE html>
+<html><body style="font-family:Arial,sans-serif;color:#111;max-width:640px;margin:0 auto;padding:20px;">
+  <h2 style="margin:0 0 4px;">New Order</h2>
+  <p style="color:#666;margin:0 0 20px;">Order ID: <strong>${esc(orderId)}</strong> · ${esc(dateStr)}</p>
 
-  return [
-    sep,
-    "ORDER #" + orderNumber,
-    sep,
-    "",
-    "Date:",
-    fmtDate(new Date()),
-    "",
-    "Customer",
-    "",
-    "Name:",
-    order.name,
-    "",
-    "Phone:",
-    order.phone,
-    "",
-    "Address:",
-    order.address,
-    "",
-    "City:",
-    order.city,
-    "",
-    "Delivery Note:",
-    order.note || "-",
-    "",
-    paymentBlock,
-    "",
-    inner,
-    "",
-    "Items",
-    "",
-    itemsBlock,
-    "",
-    inner,
-    "",
-    "Subtotal:",
-    fmtRs(order.subtotal),
-    "",
-    "Shipping:",
-    "Free",
-    "",
-    "Savings:",
-    fmtRs(order.savings),
-    "",
-    "Total:",
-    fmtRs(order.total),
-    "",
-    sep,
-    "",
-    "",
-  ].join("\n");
+  <h3 style="margin:20px 0 8px;border-bottom:2px solid #111;padding-bottom:4px;">Customer</h3>
+  <p style="margin:4px 0;"><strong>Name:</strong> ${esc(order.name)}</p>
+  <p style="margin:4px 0;"><strong>Phone:</strong> ${esc(order.phone)}</p>
+  <p style="margin:4px 0;"><strong>Address:</strong> ${esc(order.address)}</p>
+  <p style="margin:4px 0;"><strong>City:</strong> ${esc(order.city)}</p>
+  ${order.note ? `<p style="margin:4px 0;"><strong>Delivery Note:</strong> ${esc(order.note)}</p>` : ""}
+
+  <h3 style="margin:20px 0 8px;border-bottom:2px solid #111;padding-bottom:4px;">Payment</h3>
+  ${paymentBlock}
+
+  <h3 style="margin:20px 0 8px;border-bottom:2px solid #111;padding-bottom:4px;">Items</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+    <thead>
+      <tr style="background:#f5f5f5;">
+        <th style="padding:8px;text-align:left;">Item</th>
+        <th style="padding:8px;text-align:center;">Size</th>
+        <th style="padding:8px;text-align:center;">Qty</th>
+        <th style="padding:8px;text-align:right;">Price</th>
+      </tr>
+    </thead>
+    <tbody>${itemsRows}</tbody>
+  </table>
+
+  <table style="width:100%;margin-top:16px;font-size:14px;">
+    <tr><td style="padding:4px 8px;">Subtotal</td><td style="padding:4px 8px;text-align:right;">${fmtRs(order.subtotal)}</td></tr>
+    <tr><td style="padding:4px 8px;">Shipping</td><td style="padding:4px 8px;text-align:right;">Free</td></tr>
+    <tr><td style="padding:4px 8px;">Savings</td><td style="padding:4px 8px;text-align:right;">${fmtRs(order.savings)}</td></tr>
+    <tr style="font-weight:bold;font-size:16px;border-top:2px solid #111;">
+      <td style="padding:8px;">Total</td>
+      <td style="padding:8px;text-align:right;">${fmtRs(order.total)}</td>
+    </tr>
+  </table>
+</body></html>`;
 }
 
-function countOrders(contents: string): number {
-  const matches = contents.match(/ORDER #(\d+)/g) ?? [];
-  let max = 0;
-  for (const m of matches) {
-    const n = parseInt(m.replace("ORDER #", ""), 10);
-    if (!Number.isNaN(n) && n > max) max = n;
+export async function submitOrder(order: OrderInput): Promise<string> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const recipient = process.env.ORDER_RECIPIENT_EMAIL;
+  if (!apiKey || !recipient) {
+    throw new Error("Order email is not configured");
   }
-  return max;
-}
 
-// Base64 helpers that work in Workers/Node without Buffer polyfills.
-function b64encode(text: string): string {
-  // Encode UTF-8 -> base64
-  const bytes = new TextEncoder().encode(text);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  // btoa is available in Workers and modern Node
-  return btoa(bin);
-}
-function b64decode(b64: string): string {
-  const clean = b64.replace(/\s+/g, "");
-  const bin = atob(clean);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
+  const now = new Date();
+  const orderId = generateOrderId(now);
+  const dateStr = fmtDate(now);
+  const html = buildHtml(orderId, dateStr, order);
 
-interface GhConfig {
-  token: string;
-  owner: string;
-  repo: string;
-  path: string;
-  branch?: string;
-}
-
-function getConfig(): GhConfig {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME;
-  if (!token || !owner || !repo) {
-    throw new Error("GitHub storage not configured");
-  }
-  return {
-    token,
-    owner,
-    repo,
-    path: process.env.GITHUB_ORDERS_PATH || "data/orders.txt",
-    branch: process.env.GITHUB_BRANCH || undefined,
-  };
-}
-
-interface FetchedFile {
-  content: string;
-  sha: string | null;
-}
-
-async function ghGet(cfg: GhConfig): Promise<FetchedFile> {
-  const url =
-    `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path).replace(/%2F/g, "/")}` +
-    (cfg.branch ? `?ref=${encodeURIComponent(cfg.branch)}` : "");
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${cfg.token}`,
-      "User-Agent": "majestic-stoff-orders",
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
+  const resend = new Resend(apiKey);
+  const { data, error } = await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: recipient,
+    subject: `New Order - ${order.name} - ${fmtRs(order.total)}`,
+    html,
   });
-  if (res.status === 404) return { content: "", sha: null };
-  if (!res.ok) {
-    const body = await res.text();
-    console.error("GitHub GET failed", res.status, body);
-    throw new Error("GitHub GET failed: " + res.status);
+
+  if (error || !data) {
+    console.error("Resend send failed", error);
+    throw new Error("Failed to send order email");
   }
-  const json = (await res.json()) as { content?: string; sha?: string; encoding?: string };
-  const content =
-    json.encoding === "base64" && json.content ? b64decode(json.content) : json.content || "";
-  return { content, sha: json.sha ?? null };
-}
 
-async function ghPut(
-  cfg: GhConfig,
-  newContent: string,
-  sha: string | null,
-  message: string,
-): Promise<void> {
-  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(cfg.path).replace(/%2F/g, "/")}`;
-  const body: Record<string, unknown> = {
-    message,
-    content: b64encode(newContent),
-  };
-  if (sha) body.sha = sha;
-  if (cfg.branch) body.branch = cfg.branch;
-
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${cfg.token}`,
-      "User-Agent": "majestic-stoff-orders",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("GitHub PUT failed", res.status, text);
-    const err = new Error("GitHub PUT failed: " + res.status) as Error & { status?: number };
-    err.status = res.status;
-    throw err;
-  }
-}
-
-export async function appendOrder(order: OrderInput): Promise<number> {
-  const cfg = getConfig();
-
-  const attempt = async (): Promise<number> => {
-    const { content, sha } = await ghGet(cfg);
-    const n = countOrders(content) + 1;
-    const block = formatOrder(n, order);
-    const updated = content + block;
-    await ghPut(cfg, updated, sha, `New order #${n}`);
-    return n;
-  };
-
-  try {
-    return await attempt();
-  } catch (e) {
-    const status = (e as { status?: number }).status;
-    // 409 conflict or 422 (sha mismatch) — retry once
-    if (status === 409 || status === 422) {
-      return await attempt();
-    }
-    throw e;
-  }
+  return orderId;
 }

@@ -410,7 +410,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     filters:{category:string; size:string; price:string};
     sort:string; mobileFiltersOpen:boolean; mobileNavOpen:boolean;
     reviewForm:{name:string; rating:number; comment:string};
-    checkoutForm:CheckoutForm; placingOrder:boolean; lastOrderNumber:number|null;
+    checkoutForm:CheckoutForm; placingOrder:boolean; lastOrderNumber:string|null;
   }
 
   function loadCart():CartItem[] {
@@ -1076,7 +1076,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
       } catch {}
       state.cart = [];
       state.checkoutForm = { name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' };
-      state.lastOrderNumber = res.orderNumber;
+      state.lastOrderNumber = res.orderId;
       state.placingOrder = false;
       navigate('confirmation');
     } catch (err) {

@@ -989,7 +989,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     if(role==='review-name') state.reviewForm.name = t.value;
     else if(role==='review-comment') state.reviewForm.comment = t.value;
     else if(role==='co-name') state.checkoutForm.name = t.value;
-    else if(role==='co-phone') state.checkoutForm.phone = t.value;
+    else if(role==='co-phone'){ state.checkoutForm.phone = t.value.replace(/\D/g,'').slice(0,11); (t as HTMLInputElement).value = state.checkoutForm.phone; }
     else if(role==='co-address') state.checkoutForm.address = t.value;
     else if(role==='co-city') state.checkoutForm.city = t.value;
     else if(role==='co-note') state.checkoutForm.note = t.value;

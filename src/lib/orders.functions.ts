@@ -54,7 +54,7 @@ function validate(input: unknown): OrderInput {
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator(validate)
   .handler(async ({ data }) => {
-    const { appendOrder } = await import("./orders.server");
-    const orderNumber = await appendOrder(data);
-    return { orderNumber };
+    const { submitOrder } = await import("./orders.server");
+    const orderId = await submitOrder(data);
+    return { orderId };
   });

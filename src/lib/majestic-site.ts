@@ -391,7 +391,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
       reviews:[]},
   ];
 
-  // Apply +40% "compare-at" (original price shown as strikethrough).
+  // Apply +28% "compare-at" (original price shown as strikethrough).
   const PRODUCTS: Product[] = rawProducts.map(p => ({
     ...p,
     compareAt: Math.round((p.price * 1.4) / 50) * 50,
@@ -495,7 +495,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
 
   // ---------- Render pieces ----------
   function announcement(){
-    return '<div class="announcement"><strong>FREE SHIPPING</strong> ACROSS PAKISTAN · <strong>40% OFF</strong> SITEWIDE · CASH ON DELIVERY</div>';
+    return '<div class="announcement"><strong>FREE SHIPPING</strong> ACROSS PAKISTAN · <strong>28% OFF</strong> SITEWIDE · CASH ON DELIVERY</div>';
   }
   function navbar(){
     return '<header class="navbar"><div class="wrap nav-inner">' +
@@ -558,7 +558,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     return '<div class="price-row">' +
       '<span class="card-price">'+fmt(p.price)+'</span>' +
       '<span class="price-old">'+fmt(p.compareAt)+'</span>' +
-      '<span class="price-off">40% OFF</span>' +
+      '<span class="price-off">28% OFF</span>' +
     '</div>';
   }
 
@@ -567,7 +567,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     return '<div class="card" data-action="open-product" data-id="'+p.id+'">' +
       '<div class="card-media">' +
         '<span class="card-tag">'+escapeHtml(tag)+'</span>' +
-        '<span class="card-sale">40% OFF</span>' +
+        '<span class="card-sale">28% OFF</span>' +
         '<img src="'+p.images[0]+'" alt="'+escapeHtml(p.name)+'" loading="lazy">' +
       '</div>' +
       '<div class="card-info">' +
@@ -591,7 +591,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     return '<section class="hero">' +
       '<div class="hero-bg"><img src="'+IMG('hero.png')+'" alt=""></div>' +
       '<div class="wrap hero-content">' +
-        '<span class="hero-sale">40% OFF · Free Shipping</span>' +
+        '<span class="hero-sale">28% OFF · Free Shipping</span>' +
         '<span class="eyebrow">Spring / Summer 2026</span>' +
         '<h1>Tailored for the streets you actually walk.</h1>' +
         '<p>Elevated staples cut for a generation that dresses with intent — considered fabrics, modern silhouettes, no stiffness. Free shipping across Pakistan, cash on delivery.</p>' +
@@ -667,7 +667,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
         ], state.filters.price) + '</div>';
     }
 
-    return '<div class="wrap page-head"><span class="eyebrow">Shop · 40% Off · Free Shipping</span><h1>All Products</h1></div>' +
+    return '<div class="wrap page-head"><span class="eyebrow">Shop · 28% Off · Free Shipping</span><h1>All Products</h1></div>' +
     '<section style="padding-top:26px;"><div class="wrap shop-layout">' +
       '<aside class="filters-desktop">' + filterBlock() + '</aside>' +
       '<div>' +
@@ -709,7 +709,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
       '<div class="pd-layout">' +
         '<div>' +
           '<div class="pd-main-image">' +
-            '<span class="pd-ribbon">Sale · 40% Off</span>' +
+            '<span class="pd-ribbon">Sale · 28% Off</span>' +
             '<img src="'+p.images[state.activeImage]+'" alt="'+escapeHtml(p.name)+'">' +
           '</div>' +
           '<div class="pd-thumbs">' + p.images.map((img,i) =>
@@ -722,7 +722,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
           '<div class="pd-price-row">' +
             '<span class="pd-price">'+fmt(p.price)+'</span>' +
             '<span class="pd-price-old">'+fmt(p.compareAt)+'</span>' +
-            '<span class="pd-price-off">Save 40%</span>' +
+            '<span class="pd-price-off">Save 28%</span>' +
           '</div>' +
           '<div class="pd-freeship">'+ICONS.truck+' <strong>Free Shipping</strong> across Pakistan · Cash on Delivery</div>' +
           '<div style="font-size:.85rem;color:var(--ink-soft);margin-bottom:22px;">' +
@@ -798,7 +798,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
       ).join('') +
       '<div class="cart-summary">' +
         '<div class="row-between"><span>Subtotal</span><strong>'+fmt(cartSubtotal())+'</strong></div>' +
-        '<div class="row-between" style="color:var(--sale);"><span>You saved (40% off)</span><strong>−'+fmt(saved)+'</strong></div>' +
+        '<div class="row-between" style="color:var(--sale);"><span>You saved (28% off)</span><strong>−'+fmt(saved)+'</strong></div>' +
         '<div class="row-between"><span>Shipping</span><span class="free-tag">FREE</span></div>' +
         '<div class="row-between"><span>Payment</span><span>Cash on Delivery</span></div>' +
         '<button class="btn btn-gold btn-full" style="margin-top:14px;" data-action="go" data-view="checkout">Proceed to Checkout</button>' +
@@ -866,7 +866,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
           ).join('') +
           '<hr class="hairline" style="margin:14px 0;">' +
           '<div class="mini-line"><span>Subtotal</span><span>'+fmt(cartSubtotal())+'</span></div>' +
-          '<div class="mini-line" style="color:var(--sale);"><span>40% off saving</span><span>−'+fmt(saved)+'</span></div>' +
+          '<div class="mini-line" style="color:var(--sale);"><span>28% off saving</span><span>−'+fmt(saved)+'</span></div>' +
           '<div class="mini-line"><span>Shipping</span><span class="free-tag">FREE</span></div>' +
           '<hr class="hairline" style="margin:14px 0;">' +
           '<div class="row-between"><strong>Total</strong><strong>'+fmt(cartSubtotal())+'</strong></div>' +

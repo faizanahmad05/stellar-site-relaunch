@@ -1076,7 +1076,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
       } catch {}
       state.cart = [];
       state.checkoutForm = { name:'', phone:'', address:'', city:'', note:'', paymentMethod:'cod', transactionId:'' };
-      state.lastOrderNumber = res.orderNumber;
+      state.lastOrderNumber = res.orderId;
       state.placingOrder = false;
       navigate('confirmation');
     } catch (err) {

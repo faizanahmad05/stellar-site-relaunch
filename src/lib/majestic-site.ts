@@ -247,7 +247,6 @@ export const MAJESTIC_CSS = `
 .majestic-root .pay-details{ background:var(--ivory); border-left:3px solid var(--gold); padding:18px 18px 6px; margin-bottom:10px; }
 .majestic-root .pay-row{ display:flex; justify-content:space-between; font-size:.88rem; margin-bottom:10px; gap:10px; }
 .majestic-root .pay-label{ color:var(--ink-soft); }
-.majestic-root .pay-qr{ display:block; width:180px; height:auto; margin:14px 0; border-radius:10px; border:1px solid var(--line); background:#fff; padding:8px; }
 .majestic-root .pay-note{ font-size:.82rem; color:var(--sale); margin:0 0 14px; font-weight:600; }
 
 /* Confirmation */
@@ -833,7 +832,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
         '<form id="checkoutForm" novalidate>' +
           '<h3 class="font-display" style="font-size:1.15rem;margin:8px 0 14px;">Customer Information</h3>' +
           '<div class="field"><label>Full Name *</label><input type="text" data-role="co-name" value="'+escapeHtml(cf.name)+'" required></div>' +
-          '<div class="field"><label>Phone Number *</label><input type="tel" data-role="co-phone" value="'+escapeHtml(cf.phone)+'" required></div>' +
+          '<div class="field"><label>Phone Number *</label><input type="tel" data-role="co-phone" value="'+escapeHtml(cf.phone)+'" maxlength="11" required></div>' +
           '<div class="field"><label>Address *</label><input type="text" data-role="co-address" value="'+escapeHtml(cf.address)+'" required></div>' +
           '<div class="field"><label>City *</label><input type="text" data-role="co-city" value="'+escapeHtml(cf.city)+'" required></div>' +
           '<div class="field"><label>Delivery Note / Instructions</label><textarea rows="2" data-role="co-note">'+escapeHtml(cf.note)+'</textarea></div>' +
@@ -847,7 +846,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
             '<div class="pay-details">' +
               '<div class="pay-row"><span class="pay-label">Account Name</span><strong>Faizan Ahmad Yousaf</strong></div>' +
               '<div class="pay-row"><span class="pay-label">Sadapay Number</span><strong>03124051475</strong></div>' +
-              '<img class="pay-qr" src="/images/sadapay-qr.png" alt="Sadapay QR Code" loading="lazy">' +
               '<p class="pay-note">Please complete your payment before placing the order.</p>' +
               '<div class="field"><label>Payment Reference / Transaction ID *</label><input type="text" data-role="co-txn" value="'+escapeHtml(cf.transactionId)+'" required></div>' +
             '</div>'

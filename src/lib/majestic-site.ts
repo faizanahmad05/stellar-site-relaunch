@@ -1067,9 +1067,12 @@ export function initMajesticSite(root: HTMLElement): () => void {
         total: subtotal,
       }});
       try {
-        window.fbq && window.fbq('track','Purchase', {
-          value: subtotal, currency:'PKR', num_items: cartCount(),
-          content_ids: state.cart.map(i => i.id),
+        window.fbq && window.fbq('track', 'Purchase', {
+          value: Number(subtotal),
+          currency: 'PKR',
+          num_items: Number(cartCount()),
+          content_ids: state.cart.map(i => String(i.id)),
+          content_type: 'product',
         });
       } catch {}
       state.cart = [];

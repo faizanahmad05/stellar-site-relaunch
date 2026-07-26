@@ -131,10 +131,18 @@ function buildHtml(orderId: string, dateStr: string, order: OrderInput): string 
 
 export async function submitOrder(order: OrderInput): Promise<string> {
   const apiKey = process.env.RESEND_API_KEY;
-  const recipient = process.env.ORDER_RECIPIENT_EMAIL;
+  const recipient =
+    process.env.ORDER_NOTIFICATION_EMAIL || process.env.ORDER_RECIPIENT_EMAIL;
+  // Temporary presence-only debug logging (no values). Safe to keep briefly.
+  console.log("[orders] env presence", {
+    RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    ORDER_NOTIFICATION_EMAIL: Boolean(process.env.ORDER_NOTIFICATION_EMAIL),
+    ORDER_RECIPIENT_EMAIL: Boolean(process.env.ORDER_RECIPIENT_EMAIL),
+  });
   if (!apiKey || !recipient) {
     throw new Error("Order email is not configured");
   }
+
 
   const now = new Date();
   const orderId = generateOrderId(now);

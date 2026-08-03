@@ -740,6 +740,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
               '<button data-action="pd-qty" data-dir="inc">+</button>' +
             '</div>' +
             '<button class="btn btn-gold" data-action="add-to-cart">Add to Cart</button>' +
+            '<button class="btn btn-outline" data-action="order-now">Order Now</button>' +
           '</div>' +
           accordions.map(a => {
             const open = state.openAccordion===a.key;
@@ -949,6 +950,22 @@ export function initMajesticSite(root: HTMLElement): () => void {
       } catch {}
       render();
       toast('Added to cart');
+    }
+    else if(action==='order-now'){
+      const p2 = findProduct(state.productId);
+      if(!p2) return;
+      if(!state.pdSize){ toast('Please select a size'); return; }
+      const key = p2.id+'-'+state.pdSize;
+      const existing = state.cart.filter(i => i.key===key)[0];
+      if(existing) existing.qty += state.pdQty;
+      else state.cart.push({ key, id:p2.id, size:state.pdSize, qty:state.pdQty });
+      try {
+        window.fbq && window.fbq('track','AddToCart', {
+          content_ids:[p2.id], content_name:p2.name, content_type:'product',
+          value: p2.price * state.pdQty, currency:'PKR',
+        });
+      } catch {}
+      navigate('checkout');
     }
     else if(action==='toggle-accordion'){
       const key2 = el.getAttribute('data-key');

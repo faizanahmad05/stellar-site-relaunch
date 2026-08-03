@@ -740,6 +740,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
               '<button data-action="pd-qty" data-dir="inc">+</button>' +
             '</div>' +
             '<button class="btn btn-gold" data-action="add-to-cart">Add to Cart</button>' +
+            '<button class="btn btn-outline" data-action="order-now">Order Now</button>' +
           '</div>' +
           accordions.map(a => {
             const open = state.openAccordion===a.key;

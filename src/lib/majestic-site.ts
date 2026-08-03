@@ -951,6 +951,22 @@ export function initMajesticSite(root: HTMLElement): () => void {
       render();
       toast('Added to cart');
     }
+    else if(action==='order-now'){
+      const p2 = findProduct(state.productId);
+      if(!p2) return;
+      if(!state.pdSize){ toast('Please select a size'); return; }
+      const key = p2.id+'-'+state.pdSize;
+      const existing = state.cart.filter(i => i.key===key)[0];
+      if(existing) existing.qty += state.pdQty;
+      else state.cart.push({ key, id:p2.id, size:state.pdSize, qty:state.pdQty });
+      try {
+        window.fbq && window.fbq('track','AddToCart', {
+          content_ids:[p2.id], content_name:p2.name, content_type:'product',
+          value: p2.price * state.pdQty, currency:'PKR',
+        });
+      } catch {}
+      navigate('checkout');
+    }
     else if(action==='toggle-accordion'){
       const key2 = el.getAttribute('data-key');
       state.openAccordion = (state.openAccordion===key2 ? null : key2);

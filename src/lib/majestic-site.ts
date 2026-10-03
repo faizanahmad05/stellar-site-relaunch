@@ -264,7 +264,7 @@ interface CartItem { key:string; id:string; size:string; qty:number }
 
 export function initMajesticSite(root: HTMLElement): () => void {
   // ---------- Data ----------
-  const CATEGORIES = ['Shirts','Trousers','Collar Jackets','Combo Packs'];
+  const CATEGORIES = ['Shirts','Trousers','Collar Jackets'];
   const SIZES = ['S','M','L','XL','XXL'];
   const IMG = (n:string) => '/images/' + n;
 
@@ -344,48 +344,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
       images:[IMG('trouser-camel-1.jpeg'),IMG('trouser-camel-2.jpeg')],
       desc:'A straight fit trouser in a soft, elastic, and durable fabric with an adjustable drawstring waist. Exceptionally lightweight for all-day comfort.',
       fit:'Straight fit through the leg, sits at the natural waist. True to size.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p12', name:'The Signature Combo', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-signature-1.jpeg'),IMG('combo-signature-2.jpeg')],
-      desc:'Our strongest combination: the Premium Textured Striped Shirt (Black & White) paired with the Premium Beige Straight Fit Trouser. A clean, premium, and timeless look that\u2019s perfect for summer.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p13', name:'The Luxe White Combo', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-luxe-white-1.png'),IMG('combo-luxe-white-2.jpeg')],
-      desc:'One of the most luxurious pairings in the collection: the Premium Textured Smooth Fabric Zip Polo (White) with the Premium Camel Straight Fit Trouser. The white zip polo brings a modern edge, while the camel trouser adds warmth and elegance.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p14', name:'The Olive Elite', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-olive-elite-1.png'),IMG('combo-olive-elite-2.jpeg')],
-      desc:'The Premium Textured Smooth Fabric Zip Polo (Olive Green) paired with the Premium Beige Straight Fit Trouser. A stylish, earthy-toned outfit that\u2019s trending in men\u2019s fashion right now — looks expensive, feels effortless, ideal for casual outings.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p15', name:'The Executive Blue', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-executive-blue-1.png'),IMG('combo-executive-blue-2.jpeg')],
-      desc:'The Classic Blue Premium Collar Button Shirt paired with the Premium Gray Straight Fit Trouser. A smart-casual outfit suitable for work, dinners, and everyday wear — blue and gray is classic and versatile.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p16', name:'The Urban Green', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-urban-green-1.png'),IMG('combo-urban-green-2.jpeg')],
-      desc:'The Down Shoulder Premium Polo (Green & Black) paired with the Premium Camel Straight Fit Trouser. A trendy, youthful combination that stands out while remaining easy to wear.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
-      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
-      reviews:[]},
-    { id:'p17', name:'The Custom Combo', category:'Combo Packs', price:5500,
-      sizes:['S','M','L','XL','XXL'], oos:[],
-      images:[IMG('combo-modern-mono-1.png'),IMG('combo-modern-mono-2.jpeg')],
-      desc:'Can\'t decide on a set pairing? Build your own combo — choose any shirt from our shirt collection and any trouser from our trouser collection, in whatever colours and sizes you like. Once you\'ve picked your two pieces, just message us your selection and sizes on WhatsApp and we\'ll bundle them together at our special combo price.',
-      fit:'Shirt and trouser are cut in the same size as selected below.',
       ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
       reviews:[]},
     { id:'p18', name:'Premium Black Leather Collar Jacket', category:'Collar Jackets', price:4500,
@@ -545,7 +503,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
         '<li><a data-action="set-filter-category" data-value="Shirts">Shirts</a></li>' +
         '<li><a data-action="set-filter-category" data-value="Trousers">Trousers</a></li>' +
         '<li><a data-action="set-filter-category" data-value="Collar Jackets">Collar Jackets</a></li>' +
-        '<li><a data-action="set-filter-category" data-value="Combo Packs">Combo Packs</a></li>' +
       '</ul></div>' +
       '<div><h4>Newsletter</h4>' +
         '<p style="max-width:none;">First look at new drops, no spam.</p>' +
@@ -589,7 +546,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
   function viewHome(){
     const shirts = PRODUCTS.filter(p=>p.category==='Shirts');
     const trousers = PRODUCTS.filter(p=>p.category==='Trousers');
-    const combos = PRODUCTS.filter(p=>p.category==='Combo Packs');
     const jackets = PRODUCTS.filter(p=>p.category==='Collar Jackets');
     const allReviews:Array<Review & {product:string}> = [];
     PRODUCTS.forEach(p => p.reviews.forEach(r => allReviews.push(Object.assign({},r,{product:p.name}))));
@@ -620,11 +576,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '<section><div class="wrap">' +
       '<div class="section-head"><span class="eyebrow">Tailored Fit</span><h2>Trousers</h2></div>' +
       '<div class="grid">' + trousers.map(productCard).join('') + '</div>' +
-    '</div></section>' +
-
-    '<section><div class="wrap">' +
-      '<div class="section-head"><span class="eyebrow">Best Value · Bundle & Save</span><h2>Combo Packs</h2></div>' +
-      '<div class="grid">' + combos.map(productCard).join('') + '</div>' +
     '</div></section>' +
 
     '<section class="ivory-section" id="about"><div class="wrap story">' +

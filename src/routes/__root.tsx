@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Premium menswear for a generation that dresses with intent. Shirts, trousers and combo packs at 28% off with free shipping across Pakistan. Cash on delivery.",
+          "Premium menswear for a generation that dresses with intent. Shirts, trousers and collar jackets at 28% off with free shipping across Pakistan. Cash on delivery.",
       },
       { name: "author", content: "Majestic Stoff" },
       { property: "og:title", content: "Majestic Stoff — Premium Menswear" },
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Premium shirts, trousers & combos. 28% off, free shipping, cash on delivery.",
+          "Premium shirts, trousers & collar jackets. 28% off, free shipping, cash on delivery.",
       },
     ],
     links: [

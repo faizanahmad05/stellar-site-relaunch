@@ -608,6 +608,11 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '</section>' +
 
     '<section><div class="wrap">' +
+      '<div class="section-head"><span class="eyebrow">Layer Up</span><h2>Collar Jackets</h2></div>' +
+      '<div class="grid">' + jackets.map(productCard).join('') + '</div>' +
+    '</div></section>' +
+
+    '<section><div class="wrap">' +
       '<div class="section-head"><span class="eyebrow">Sharp & Considered</span><h2>Shirts</h2></div>' +
       '<div class="grid">' + shirts.map(productCard).join('') + '</div>' +
     '</div></section>' +
@@ -615,11 +620,6 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '<section><div class="wrap">' +
       '<div class="section-head"><span class="eyebrow">Tailored Fit</span><h2>Trousers</h2></div>' +
       '<div class="grid">' + trousers.map(productCard).join('') + '</div>' +
-    '</div></section>' +
-
-    '<section><div class="wrap">' +
-      '<div class="section-head"><span class="eyebrow">Layer Up</span><h2>Collar Jackets</h2></div>' +
-      '<div class="grid">' + jackets.map(productCard).join('') + '</div>' +
     '</div></section>' +
 
     '<section><div class="wrap">' +

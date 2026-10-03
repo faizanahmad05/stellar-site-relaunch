@@ -264,7 +264,7 @@ interface CartItem { key:string; id:string; size:string; qty:number }
 
 export function initMajesticSite(root: HTMLElement): () => void {
   // ---------- Data ----------
-  const CATEGORIES = ['Shirts','Trousers','Combo Packs'];
+  const CATEGORIES = ['Shirts','Trousers','Collar Jackets','Combo Packs'];
   const SIZES = ['S','M','L','XL','XXL'];
   const IMG = (n:string) => '/images/' + n;
 
@@ -386,6 +386,13 @@ export function initMajesticSite(root: HTMLElement): () => void {
       images:[IMG('combo-modern-mono-1.png'),IMG('combo-modern-mono-2.jpeg')],
       desc:'Can\'t decide on a set pairing? Build your own combo — choose any shirt from our shirt collection and any trouser from our trouser collection, in whatever colours and sizes you like. Once you\'ve picked your two pieces, just message us your selection and sizes on WhatsApp and we\'ll bundle them together at our special combo price.',
       fit:'Shirt and trouser are cut in the same size as selected below.',
+      ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
+      reviews:[]},
+    { id:'p18', name:'Premium Black Leather Collar Jacket', category:'Collar Jackets', price:4500,
+      sizes:['S','M','L','XL','XXL'], oos:[],
+      images:[IMG('collar-jacket-black-1.png')],
+      desc:'A sleek black collar jacket in soft textured faux leather, with a classic shirt collar, full front zip, side welt pockets and ribbed cuffs and hem. Effortlessly sharp over a polo or shirt.',
+      fit:'Regular fit with ribbed cuffs and hem. True to size.',
       ship:'Free shipping across Pakistan. Dispatched within 1–2 business days. Delivered in 3–5 business days — cash collected at your door on arrival.',
       reviews:[]},
   ];
@@ -537,6 +544,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
         '<li><a data-action="go" data-view="shop">All Products</a></li>' +
         '<li><a data-action="set-filter-category" data-value="Shirts">Shirts</a></li>' +
         '<li><a data-action="set-filter-category" data-value="Trousers">Trousers</a></li>' +
+        '<li><a data-action="set-filter-category" data-value="Collar Jackets">Collar Jackets</a></li>' +
         '<li><a data-action="set-filter-category" data-value="Combo Packs">Combo Packs</a></li>' +
       '</ul></div>' +
       '<div><h4>Newsletter</h4>' +
@@ -582,6 +590,7 @@ export function initMajesticSite(root: HTMLElement): () => void {
     const shirts = PRODUCTS.filter(p=>p.category==='Shirts');
     const trousers = PRODUCTS.filter(p=>p.category==='Trousers');
     const combos = PRODUCTS.filter(p=>p.category==='Combo Packs');
+    const jackets = PRODUCTS.filter(p=>p.category==='Collar Jackets');
     const allReviews:Array<Review & {product:string}> = [];
     PRODUCTS.forEach(p => p.reviews.forEach(r => allReviews.push(Object.assign({},r,{product:p.name}))));
     allReviews.sort((a,b) => b.rating-a.rating || new Date(b.date).getTime()-new Date(a.date).getTime());
@@ -606,6 +615,11 @@ export function initMajesticSite(root: HTMLElement): () => void {
     '<section><div class="wrap">' +
       '<div class="section-head"><span class="eyebrow">Tailored Fit</span><h2>Trousers</h2></div>' +
       '<div class="grid">' + trousers.map(productCard).join('') + '</div>' +
+    '</div></section>' +
+
+    '<section><div class="wrap">' +
+      '<div class="section-head"><span class="eyebrow">Layer Up</span><h2>Collar Jackets</h2></div>' +
+      '<div class="grid">' + jackets.map(productCard).join('') + '</div>' +
     '</div></section>' +
 
     '<section><div class="wrap">' +
